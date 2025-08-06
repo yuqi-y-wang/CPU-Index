@@ -65,15 +65,17 @@ def calculate_c_index(errs, group_num=10):
     return c_poi
 
 
-def decide_warning(df_uq, warning_pred = 0.4, warning_uq = 0.4):
-    # warning_uq (below)
-    # warning_pred (above)
+def decide_warning(df_uq, warning_pred = 0.4, warning_uq = 0.4, 
+                   prediction = 'hazard_pred_at_time'):
     df_uq = df_uq.drop(columns=['warning'], errors='ignore')
-    df_uq.loc[:, 'warning'] = 0
-    inds = df_uq.index[
-        np.where((df_uq['uq_score']<=warning_uq)
-                 &(df_uq['surv_pred_at_time']<=warning_pred))[0]]
-    df_uq.loc[inds, 'warning'] = 1
+    df_uq.loc[:, 'warning'] = 1
+    inds = list(df_uq.index[
+        np.where((df_uq['uq_score']<warning_uq)
+                 &(df_uq['hazard_pred_at_time']<warning_pred))[0]])
+    inds += list(df_uq.index[
+        np.where((df_uq['uq_score']>=warning_uq)
+                 &(df_uq['hazard_pred_at_time']<warning_pred+0.1))[0]])
+    df_uq.loc[inds, 'warning'] = 0
     return df_uq
 
 
